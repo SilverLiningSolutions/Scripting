@@ -1,0 +1,65 @@
+ function addToASITable(tableName,tableValues) // optional capId
+  	{
+	//  tableName is the name of the ASI table
+	//  tableValues is an associative array of values.  All elements must be either a string or asiTableVal object
+  	itemCap = capId
+	if (arguments.length > 2)
+		itemCap = arguments[2]; // use cap ID specified in args
+
+	var tssmResult = aa.appSpecificTableScript.getAppSpecificTableModel(itemCap,tableName)
+
+	if (!tssmResult.getSuccess())
+		{ logDebug("**WARNING: error retrieving app specific table " + tableName + " " + tssmResult.getErrorMessage()) ; return false }
+
+	var tssm = tssmResult.getOutput();
+	var tsm = tssm.getAppSpecificTableModel();
+	var fld = tsm.getTableField();
+	var col = tsm.getColumns();
+	var fld_readonly = tsm.getReadonlyField(); //get ReadOnly property
+	var coli = col.iterator();
+
+	while (coli.hasNext())
+		{
+		colname = coli.next();
+
+		if (typeof(tableValues[colname.getColumnName()]) == "object")  // we are passed an asiTablVal Obj
+			{
+			fld.add(tableValues[colname.getColumnName()].fieldValue);
+			fld_readonly.add(tableValues[colname.getColumnName()].readOnly);
+			}
+		else // we are passed a string
+			{
+			fld.add(tableValues[colname.getColumnName()]);
+			fld_readonly.add(null);
+			}
+		}
+
+	tsm.setTableField(fld);
+	tsm.setReadonlyField(fld_readonly); // set readonly field
+
+	addResult = aa.appSpecificTableScript.editAppSpecificTableInfos(tsm, itemCap, currentUserID);
+	if (!addResult .getSuccess())
+		{ logDebug("**WARNING: error adding record to ASI Table:  " + tableName + " " + addResult.getErrorMessage()) ; return false }
+	else
+		logDebug("Successfully added record to ASI Table: " + tableName);
+	}
+
+function allTasksComplete(stask) // optional tasks to ignore... for Sacramento
+	{
+	var ignoreArray = new Array();
+	for (var i=1; i<arguments.length;i++) 
+		ignoreArray.push(arguments[i])
+
+	// returns true if any of the subtasks are active
+	var taskResult = aa.workflow.getTasks(capId);
+	if (taskResult.getSuccess())
+		{ taskArr = taskResult.getOutput(); }
+	else
+		{ logDebug( "**ERROR: getting tasks : " + taskResult.getErrorMessage()); return false }
+		
+	for (xx in taskArr)
+		if (taskArr[xx].getProcessCode().equals(stask) && taskArr[xx].getActiveFlag().equals("Y") && !exists(taskArr[xx].getTaskDescription(),ignoreArray))
+			return false;
+	return true;
+	}
+
