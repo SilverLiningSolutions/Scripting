@@ -1,0 +1,55 @@
+GROUP EXERCISES
+ASA;BUILDING!RESIDENTIAL!ELECTRICAL!NA.JS
+if (AInfo["Type of Work"] == "Alteration") {
+	showMessage = true;
+	comment("Check for Historical District");
+}	
+
+ASA;BUILDING!RESIDENTIAL!ELECTRICAL!NA.JS
+addStdCondition("Building Permit","Utility Locate");
+
+ASA;BUILDING!SIGN!PERMANENT!NA.JS
+var width = AInfo["Width"]; 
+var height = AInfo["Height"];
+var area = width*height; logDebug("Area is:" + area); //MATH FUNCTION CASTS AS NUMBERS
+editAppSpecific("Area",area);  logDebug("I updated the field to: " + AInfo["Area"]);
+	
+
+INDIVIDUAL EXERCISES	
+WTUA;BUILDING/RESIDENTIAL/ELECTRICAL/NA.JS
+if (wfTask == "Application Submittal" && wfStatus == "Accepted - Plan Review Req"){
+	updateFee("BLD_030","BLD_GENERAL","FINAL",1,"Y");
+}	
+
+WTUB;BUILDING!RESIDENTIAL!ELECTRICAL!NA.JS
+if (wfTask == "Permit Issuance" && wfStatus == "Issued" && balanceDue > 0) {
+	if (AInfo["Job Cost"] > 1000) {
+		showMessage = true;
+		comment("There is a balance due on the record of: " + balanceDue);
+		cancel = true;
+	}
+}	
+
+WTUA;BUILDING/RESIDENTIAL/ELECTRICAL/NA.JS
+if (wfTask == "Permit Issuance" && wfStatus == "Issued") {
+	editAppSpecific("Permit Expiration Date", dateAdd(null,180));
+	var inspDate = dateAdd(null,15,"Y");
+	scheduleInspectDate("Electrical Final",inspDate,"ADMIN");
+}
+
+IRSA;BUILDING/RESIDENTIAL/ELECTRICAL/NA.JS
+if (inspType == "Electrical Final" && (inspResult == "Passed") || (inspResult == "Partial")) {
+	closeTask("Inspection","Final Inspection Complete",inspResultComment,"Closed Via IRSA Script Electrical Final");  
+	//"Closed Via...." is a best practice when closing via script
+}	
+
+IRSA;BUILDING/RESIDENTIAL/ELECTRICAL/NA.JS
+if (inspType == "Electrical Final" && inspResult == "Rejected") {
+	updateTask("Inspection","Note",inspResultComment,"Updated Via IRSA Script Electrical Final");
+	var enfChild = createChild("Enforcement","Incident","Building","Sub-Standard Property","Electrical Code Violation");
+	if (enfChild != null) {
+		editAppSpecific("Source of Complaint","Staff",enfChild);
+		editAppSpecific("Location",inspResultComment,enfChild);
+		scheduleInspect(enfChild,"Initial Investigation",0);  //This is not in the script guide but is found in the INCLUDES_ACCELA_FUNCTIONS 3.1.28
+	}
+}	
