@@ -1,0 +1,69 @@
+function formatPhone(val) {
+
+                //set regex pattern for mask
+                //for more information about regular expressions, Regular-Expressions.Info is a great resource.
+                //note: pattern matches in ()  create variables that can be used to create the pattern
+                // for example, (\d{3}) = the first three characters of the value, the variable can be used as ¿$1¿.
+                var pattern = /^(\d{3})(\d{3})(\d{4}$)/g; //format phone
+
+                //check if the value is null, if it is, return '' (blank)
+                if(val==null||val==''){
+
+                                return '';
+
+                }
+
+                //put the value into a javascript String object
+                var strVal = new String(val.toString());               
+
+                //remove dashes before masking if it's already masked
+                var cleanVal= strVal.replace(/[!@#$%^&*().\s*-]+/g,"");
+
+               if(cleanVal.length==10 || cleanVal.length>10)
+                 {
+
+                       cleanVal=cleanVal.substring(0,10) ;
+
+                  }
+
+               //mask the value using the match parameters returned from the regex "$1-$2-$3¿
+               var maskedVal = cleanVal.replace(pattern, "$1-$2-$3");               
+
+                return maskedVal;
+
+}
+
+var servProvCode=expression.getValue("$$servProvCode$$").value;
+var variable0=expression.getValue("ASI::BANK REFERENCE INFORMATION::Phone"); // Group Name and Field Name here
+var msg = "";
+
+var totalRowCount = expression.getTotalRowCount();
+for(var rowIndex=0; rowIndex<totalRowCount; rowIndex++)
+{
+		variable0=expression.getValue(rowIndex, "ASI::BANK REFERENCE INFORMATION::Phone"); // Group Name and Field Name here
+
+                                                
+                                       if (variable0.value != null )
+
+                                        {
+                                                if (variable0.value.length() > 9)
+
+                                                { 
+                                                     var value1=  variable0.value.substring(0,10);
+
+                                                      variable0.message="";
+                                                     var maskPH = formatPhone(variable0.value);
+                                                      variable0.value=maskPH;
+                                                      expression.setReturn(variable0);
+
+                                                   }
+
+                                             else if (variable0.value.length() < 9 && variable0.value.length() !=0)
+
+                                                  {
+                                                       variable0.message="Cannot Mask";
+                                                      expression.setReturn(variable0);
+                                                   }
+
+                                        }		
+}
