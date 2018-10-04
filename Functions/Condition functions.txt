@@ -1,0 +1,86 @@
+function appHasConditionTST(pType, pStatus, pDesc, pImpact) {
+    // Checks to see if conditions have been added to CAP (tried both 16-00490-TRL-LIC and 16CAP-00000-000J3)
+    //
+    if (pType == null)
+        var condResult = aa.capCondition.getCapConditions(capId);
+    else
+        var condResult = aa.capCondition.getCapConditions(capId, pType);
+
+    if (condResult.getSuccess())
+        var capConds = condResult.getOutput();
+    else {
+        logMessage("**ERROR: getting cap conditions: " + condResult.getErrorMessage());
+        logDebug("**ERROR: getting cap conditions: " + condResult.getErrorMessage());
+        return false;
+    }
+
+    var cStatus;
+    var cDesc;
+    var cImpact;
+
+    for (cc in capConds) {
+        var thisCond = capConds[cc];
+        var cStatus = thisCond.getConditionStatus();
+        var cDesc = thisCond.getConditionDescription();
+        var cImpact = thisCond.getImpactCode();
+        var cType = thisCond.getConditionType();
+        if (cStatus == null)
+            cStatus = " ";
+        if (cDesc == null)
+            cDesc = " ";
+        if (cImpact == null)
+            cImpact = " ";
+        //Look for matching condition
+
+        if ((pStatus == null || pStatus.toUpperCase().equals(cStatus.toUpperCase())) && (pDesc == null || pDesc.toUpperCase().equals(cDesc.toUpperCase())) && (pImpact == null || pImpact.toUpperCase().equals(cImpact.toUpperCase())))
+            return true; //matching condition found
+    }
+    return false; //no matching condition found
+} //function
+
+function editConditionTST(condType, condDesc, condNewStatus) { //optional capId
+    // Optional parameter, cap ID to load from
+    var itemCap = capId;
+    if (arguments.length > 3) {
+        itemCap = arguments[3]; // use cap ID specified in args
+    }
+    //aa.print("itemCap " + itemCap);
+    if (condType == null)
+        var condResult = aa.capCondition.getCapConditions(itemCap);
+    else
+        var condResult = aa.capCondition.getCapConditions(itemCap, condType);
+
+    if (condResult.getSuccess())
+        var capConds = condResult.getOutput();
+    else {
+        logMessage("**ERROR: getting cap conditions: " + condResult.getErrorMessage());
+        logDebug("**ERROR: getting cap conditions: " + condResult.getErrorMessage());
+        return false;
+    }
+
+    var cStatus;
+    var cDesc;
+    var cImpact;
+
+    for (cc in capConds) {
+        var thisCond = capConds[cc];
+        var cStatus = thisCond.getConditionStatus();
+        var cDesc = thisCond.getConditionDescription();
+        var cImpact = thisCond.getImpactCode();
+        var cType = thisCond.getConditionType();
+        //if (cStatus == null)
+        //    cStatus = " ";
+        if (cDesc == condDesc)
+            logDebug("cond Desc " + condDesc);
+        thisCond.setConditionStatus(condNewStatus);
+        //thisCond.aa.capCondition.editCapCondition(condArr[ca]); (condNewStatus);
+        //cDesc = " ";
+        //if ((pStatus == null || pStatus.toUpperCase().equals(cStatus.toUpperCase())) && (pDesc == null || pDesc.toUpperCase().equals(cDesc.toUpperCase())) && (pImpact == null || pImpact.toUpperCase().equals(cImpact.toUpperCase())))
+        //if (cImpact == null)
+        //    cImpact = " ";
+        //Look for matching condition
+        return true; //matching condition found
+    }
+    return false; //no matching condition found
+} //function
+

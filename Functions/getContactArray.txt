@@ -1,0 +1,49 @@
+function getContactArray()
+	{
+	// Returns an array of associative arrays with contact attributes.  Attributes are UPPER CASE
+	// optional capid
+	var thisCap = capId;
+	if (arguments.length == 1) thisCap = arguments[0];
+
+	var cArray = new Array();
+
+	if (arguments.length == 0 && !cap.isCompleteCap()) // we are in a page flow script so use the capModel to get contacts
+		{
+		capContactArray = cap.getContactsGroup().toArray() ;
+		}
+	else
+		{
+		var capContactResult = aa.people.getCapContactByCapID(thisCap);
+		if (capContactResult.getSuccess())
+			{
+			var capContactArray = capContactResult.getOutput();
+			}
+		}
+	
+	if (capContactArray)
+		{
+		for (yy in capContactArray)
+			{
+			var aArray = new Array();
+			aArray["lastName"] = capContactArray[yy].getPeople().lastName;
+			aArray["firstName"] = capContactArray[yy].getPeople().firstName;
+			aArray["middleName"] = capContactArray[yy].getPeople().middleName;
+			aArray["businessName"] = capContactArray[yy].getPeople().businessName;
+			aArray["contactSeqNumber"] =capContactArray[yy].getPeople().contactSeqNumber;
+			aArray["contactType"] =capContactArray[yy].getPeople().contactType;
+			aArray["relation"] = capContactArray[yy].getPeople().relation;
+			aArray["phone1"] = capContactArray[yy].getPeople().phone1;
+			aArray["phone2"] = capContactArray[yy].getPeople().phone2;
+			aArray["email"] = capContactArray[yy].getEmail();
+
+			if (arguments.length == 0 && !cap.isCompleteCap()) // using capModel to get contacts
+				var pa = capContactArray[yy].getPeople().getAttributes().toArray();
+			else
+				var pa = capContactArray[yy].getCapContactModel().getPeople().getAttributes().toArray();
+	                for (xx1 in pa)
+                   		aArray[pa[xx1].attributeName] = pa[xx1].attributeValue;
+			cArray.push(aArray);
+			}
+		}
+	return cArray;
+	}
